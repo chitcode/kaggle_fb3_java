@@ -1,0 +1,6 @@
+simple matching top 500 words in the title + subject (first 150 char)
+
+Time taken # 35 mins
+Public score # 0.68092
+
+#############################################################################
