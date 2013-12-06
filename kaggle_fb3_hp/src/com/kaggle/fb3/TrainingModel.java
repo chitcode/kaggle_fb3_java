@@ -27,7 +27,7 @@ public class TrainingModel {
 	
 	public static final String ID_SEPARATOR = "-";
 	public static final String ID_START = "\"";
-	public static final String COMMA_SEP = "\",\"";
+	public static final String COMMA_SEP = ",\"";
 	
 	public static Set<String> stopWordsSet= new HashSet<String>();
 	public static Map<String,Integer> tagsCount = new HashMap<String,Integer>();
@@ -87,7 +87,7 @@ public class TrainingModel {
 			}
 		}
 		
-		int linesMatched = 0;
+		//int linesMatched = 0;
 		
 		try {	
 			 
@@ -116,7 +116,7 @@ public class TrainingModel {
 					String[] lineIds = lineIdsStr.split(ID_SEPARATOR);
 					
 					for(String lineId:lineIds){
-						writer.println(ID_START+lineId+COMMA_SEP+cols[cols.length-1]);
+						writer.println(lineId+COMMA_SEP+cols[cols.length-1]);
 					}
 					testDataMap.remove(title);		//remove the data from the map		
 				}
@@ -144,23 +144,6 @@ public class TrainingModel {
 				ex.printStackTrace();
 			}
 		}
-		
-		
-		/*
-		//training the bloom filter
-		double falsePositiveProbability = 0.001;
-		int expectedNumberOfElements = 40000;
-		
-		
-		bloomFilter = new BloomFilter<String>(falsePositiveProbability, expectedNumberOfElements);
-		for(Entry<String, String> e:testDataMap.entrySet()){
-			String[] testIds = e.getValue().split(ID_SEPARATOR);
-			for(String testId:testIds){
-				bloomFilter.add(testId);
-			}
-		}
-		
-		*/
 		//logging
 		System.out.println("Storing the non-duplicate ids");
 		
@@ -180,14 +163,14 @@ public class TrainingModel {
 		writer.close();
 		
 		//System.out.println("test data size" + testDataMap.size());
-		System.out.println("lines matched : " + linesMatched);
+		//System.out.println("lines matched : " + linesMatched);
 		System.out.println("Time taken "+ (System.currentTimeMillis() - startTime)/(1000) + " seconds");
 	
 	}
 	
 	
 	public static void predictTags(){
-		List<String> topTagList = topTags(tagsCount,500);
+		List<String> topTagList = topTags(tagsCount,1000);
 		
 		loadStopWords();
 		
@@ -238,7 +221,7 @@ public class TrainingModel {
 						}
 					}
 					//System.out.println(ID_START+lineId+COMMA_SEP+predictedTags.toString().trim()+"\"");
-					writer.println(ID_START+lineId+COMMA_SEP+predictedTags.toString().trim()+"\"");
+					writer.println(lineId+COMMA_SEP+predictedTags.toString().trim()+"\"");
 				}catch(Exception e){
 					try {
 						if (br != null)br.close();

@@ -4,3 +4,6 @@ Time taken # 35 mins
 Public score # 0.68092
 
 #############################################################################
+simple matching top 1000 words in the title + subject (first 150 char) mono-gram and bi-gram.
+Time taken 25 mins.
+Public score # 68768 (improved 0.00677)

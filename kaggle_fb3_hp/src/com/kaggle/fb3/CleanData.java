@@ -44,9 +44,12 @@ public class CleanData {
 		String[] words = testDesc.split("\\s");
 		
 		Set<String> wordSet = new HashSet<String>(Arrays.asList(words));
-		wordSet.removeAll(TrainingModel.stopWordsSet);
+		wordSet.removeAll(TrainingModel.stopWordsSet);		
 		
-		//TODO: bigrams not implemented
+		//List<String> wordList = new ArrayList<String>(wordSet);
+		for(int i = 1; i < words.length;i++){
+			wordSet.add(words[i-1]+"-"+words[i]);
+		}
 		
 		return wordSet;
 	}
@@ -58,6 +61,6 @@ public class CleanData {
 	}
 	
 	public static void main(String[] args){
-		System.out.println(CleanData.cleanData("How to check if an uploaded file is an image without mime type?"));
+		System.out.println(CleanData.getBigram("How to check if an uploaded file is an image without mime type?"));
 	}
 }
