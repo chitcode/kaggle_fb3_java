@@ -1,15 +1,13 @@
 package com.kaggle.fb3;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -24,6 +22,8 @@ public class TrainingModel_tag_bigram {
 	public static final String ID_SEPARATOR = "-";
 	public static final String ID_START = "\"";
 	public static final String COMMA_SEP = ",\"";
+	
+	public static double avgF1Score = 0.0;
 
 	public static Set<String> stopWordsSet = new HashSet<String>();
 	public static Map<String, Integer> tagsCount = new HashMap<String, Integer>();
@@ -33,6 +33,7 @@ public class TrainingModel_tag_bigram {
 
 	public static String trainFile = null;;
 	public static String testFile = null;
+	public static String predFile = null;
 
 	// public static BloomFilter<String> bloomFilter = null;
 	public static Set<String> nonDuplicateIds = null;
@@ -40,6 +41,9 @@ public class TrainingModel_tag_bigram {
 	public static PrintWriter writer = null;
 
 	public static long startTime = 0;
+	
+	public static String[] restrictedWords = new String[]{"function","application","performance","path","int","short","bit","bits",
+		"data","string","table","internet","explorer","class","select","process"};
 
 	public static void main(String[] args) throws FileNotFoundException,
 			UnsupportedEncodingException {
@@ -48,9 +52,8 @@ public class TrainingModel_tag_bigram {
 
 		trainFile = args[0];
 		testFile = args[1];
-		writer = new PrintWriter(
-				"/home/chitra/data_local/kaggle_data/facebook_3/predict.csv",
-				"UTF-8");
+		predFile = args[2];
+		writer = new PrintWriter(predFile,"UTF-8");
 
 		// holds all the training titles as key and predictions as values ','
 		// separated
@@ -66,6 +69,8 @@ public class TrainingModel_tag_bigram {
 			String title = null;
 			// logging
 			System.out.println("Reading the Test file");
+			
+			
 			while ((line = br.readLine()) != null) {
 				String[] cols = line.split("\",\"");
 
@@ -116,6 +121,8 @@ public class TrainingModel_tag_bigram {
 					String[] lineIds = lineIdsStr.split(ID_SEPARATOR);
 
 					for (String lineId : lineIds) {
+						avgF1Score = avgF1Score + 1.0;
+						
 						writer.println(lineId + COMMA_SEP
 								+ cols[cols.length - 1]);
 					}
@@ -212,9 +219,9 @@ public class TrainingModel_tag_bigram {
 				/ (1000 * 60) + " mins");
 		System.out.println("Stating predictions");
 
-		List<String> topTagList = topTags(tagsCount, 1000);
-		List<String> bottomTagList = bottomTags(tagsCount, 10000);
-		Collections.reverse(bottomTagList);
+		List<String> topTagList = topTags(tagsCount, 500);
+		List<String> bottomTagList = topTags(tagsCount, 10000);
+		//Collections.reverse(bottomTagList);
 		bottomTagList.removeAll(topTagList);
 		//topTagList.addAll(topTags(tagsCount, 3000));
 
@@ -229,6 +236,8 @@ public class TrainingModel_tag_bigram {
 			String lineId = null;
 			
 			Set<String> biGramWords = null;
+			String actualTags = null;
+			int linesCount = 0;
 			while ((line = br.readLine()) != null) {
 				String[] cols = line.split("\",\"");
 
@@ -240,23 +249,29 @@ public class TrainingModel_tag_bigram {
 				
 				nonDuplicateIds.remove(lineId); // remove the id from the list
 				biGramWords = CleanData.getBigram(cols[1] + " " + cols[2]);
-				int maxPredictionCount = 2;
-				int maxPredictionCount1 = 2;
-				Set<String> predictedTagsSets = new HashSet<String>();
+				actualTags = cols[cols.length -1].replaceAll("\"", "").trim();
+				int maxPredictionCount = 4;
+				//int maxPredictionCount1 = 2;
+				
+				
+				linesCount++;
+				double f1Score = 0.0;
+				Set<String> predictedTagsSets = new HashSet<String>(new HashSet<String>(Arrays.asList(restrictedWords)));
+				//predictedTagsSets.addAll(restrictedWords.t);
 				try {
 
 					int i = 0;
-					int j = 0;
+					//int j = 0;
 					StringBuffer predictedTags = new StringBuffer();
 					
 					for (String tagWord : topTagList) {
-						if (j == maxPredictionCount1)
+						if (i == maxPredictionCount)
 							break;
 						if (biGramWords.contains(tagWord) && !predictedTagsSets.contains(tagWord)) {
 							predictedTagsSets.add(tagWord);
 							predictedTags.append(tagWord);
 							predictedTags.append(" ");
-							j++;
+							i++;
 							/**
 							Map<String, Integer> bigramTags = bigramTagsCount.get(tagWord);
 							if (null == bigramTags)
@@ -313,19 +328,59 @@ public class TrainingModel_tag_bigram {
 					
 					if(biGramWords.contains("getelementbyid") && !predictedTagsSets.contains("javascript")){
 						predictedTagsSets.add("javascript");
+						predictedTags.append("javascript");
 						predictedTags.append(" ");
 					}
 					if((biGramWords.contains("numpy") || biGramWords.contains("scipy") || biGramWords.contains("pandas"))&& !predictedTagsSets.contains("python")){
 						predictedTagsSets.add("python");
+						predictedTags.append("python");
 						predictedTags.append(" ");
 					}
 					
-					if(predictedTagsSets.size() == 0){
-						predictedTags.append("java javascript ruby-on-railsruby-on-rails jquery ios objective-c android");
+					//ios, iphone, objective-c, ipad,ipod
+					if(predictedTagsSets.contains("ios")|predictedTagsSets.contains("iphone")|predictedTagsSets.contains("objective-c")|predictedTagsSets.contains("ipad")){
+						if(!predictedTagsSets.contains("ios")){
+							predictedTagsSets.add("ios");
+							predictedTags.append("ios");
+							predictedTags.append(" ");
+						}
+						
+						if(!predictedTagsSets.contains("iphone")){
+							predictedTagsSets.add("iphone");
+							predictedTags.append("iphone");
+							predictedTags.append(" ");
+						}
+						
+						if(!predictedTagsSets.contains("objective-c")){
+							predictedTagsSets.add("objective-c");
+							predictedTags.append("objective-c");
+							predictedTags.append(" ");
+						}
+							
 					}
+					
+					if(predictedTagsSets.contains("wpf") && predictedTagsSets.contains("c#")){
+						predictedTagsSets.add("c#");
+						predictedTags.append("c#");
+						predictedTags.append(" ");						
+					}
+					
+					if(predictedTagsSets.contains("cocoa") && predictedTagsSets.contains("objective-c")){
+						predictedTagsSets.add("objective-c");
+						predictedTags.append("objective-c");
+						predictedTags.append(" ");						
+					}
+					
+					if(predictedTagsSets.size() == restrictedWords.length){
+						predictedTags.append("c# java javascript jquery android ruby-on-rails c++ .net");
+					}
+					//f1Score = ScoreCalc.calcF1(actualTags, predictedTags.toString().trim());
+					//avgF1Score = avgF1Score + f1Score;
 				
+					//writer.println(lineId + COMMA_SEP
+					//		+ predictedTags.toString().trim() + "\"" + COMMA_SEP+f1Score+COMMA_SEP+actualTags);
 					writer.println(lineId + COMMA_SEP
-							+ predictedTags.toString().trim() + "\"");
+									+ predictedTags.toString().trim() + "\"");
 				} catch (Exception e) {
 					try {
 						if (br != null)
@@ -335,9 +390,11 @@ public class TrainingModel_tag_bigram {
 					}
 				}
 			}
+			
+			System.out.println("Average F1 Score ::: " + avgF1Score/linesCount);
 		} catch (IOException e) {
 			e.printStackTrace();
-		} finally {
+		} finally {			
 			try {
 				if (br != null)
 					br.close();

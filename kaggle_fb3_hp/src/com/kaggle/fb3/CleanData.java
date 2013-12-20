@@ -39,7 +39,7 @@ public class CleanData {
 		testDesc = testDesc.toLowerCase();
 		testDesc = testDesc.replaceAll("<code>.*?</code>", "");
 		testDesc = testDesc.replaceAll("<.*?>", "");
-		testDesc = testDesc.replaceAll("[^a-z\\s\\.\\-\\#]", "");
+		testDesc = testDesc.replaceAll("[^a-z0-9\\s\\.\\-\\#\\+]", "");
 		testDesc = testDesc.replaceAll("\\s+", " ");
 		testDesc = testDesc.replaceAll("\\.\\s+", " ");
 		
