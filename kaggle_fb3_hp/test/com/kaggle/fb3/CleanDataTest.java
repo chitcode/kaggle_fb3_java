@@ -9,7 +9,7 @@ public class CleanDataTest {
 
 	@Test
 	public void test() {
-		Assert.assertEquals("How to check if an uploaded file is an image without mime type", CleanData.cleanData("How to check if an uploaded file is an image without mime type?"));
+		Assert.assertEquals("howtocheckifanuploadedfileisanimagewithoutmimetype", CleanData.cleanData("How to check if an uploaded file is an image without mime type?"));
 	}
 
 }

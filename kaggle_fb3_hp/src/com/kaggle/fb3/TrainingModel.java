@@ -33,6 +33,8 @@ public class TrainingModel {
 	public static String trainFile = null;;
 	public static String testFile = null;
 	
+	public static String[] restrictedWords = new String[]{"function","application"};
+	
 	public static BloomFilter<String> bloomFilter = null;
 	public static Set<String> nonDuplicateIds  = null; 
 	
