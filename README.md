@@ -17,3 +17,17 @@ Stream Test.csv - if the record is not in the duplicate list, then process it us
 
 
 For details of the scores please refer to /resources/Benchmark_scores.txt
+
+
+
+
+Final Submission:
+
+max prediction 5
+top 500
+others from less than 500, and co-occurance tags map processed decreasing order of the tag counts
+Added few restrictions to the tags
+Added new tags based on their co-occurances like if ios then objective-c etc
+
+public leader board score : 0.69095 , position : 131
+private leader board score : 0.69144 , position 131
